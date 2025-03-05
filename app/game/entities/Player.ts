@@ -43,6 +43,15 @@ export class Player {
     // Create main character group
     this.character = new THREE.Group();
 
+    // Add direction indicator (green line pointing forward)
+    const directionMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00 });
+    const directionGeometry = new THREE.BufferGeometry().setFromPoints([
+      new THREE.Vector3(0, 0, 0),
+      new THREE.Vector3(0, 0, 1), // Points forward 1 unit in z-direction
+    ]);
+    const directionLine = new THREE.Line(directionGeometry, directionMaterial);
+    this.character.add(directionLine);
+
     // Create upper and lower body groups
     this.upperBody = new THREE.Group();
     this.lowerBody = new THREE.Group();
@@ -144,30 +153,36 @@ export class Player {
   }
 
   public update(delta: number) {
-    // Get mouse position relative to character position
     const mousePos = this.input.getMousePosition();
+    const targetUpperBodyRotation =
+      Math.atan2(-mousePos.x, mousePos.y) + Math.PI;
 
-    // Calculate angle between character and cursor
-    const targetUpperBodyRotation = -Math.atan2(mousePos.x, mousePos.y);
+    // Smooth upper body rotation
+    const upperRotationDiff = Math.atan2(
+      Math.sin(targetUpperBodyRotation - this.currentUpperBodyRotation),
+      Math.cos(targetUpperBodyRotation - this.currentUpperBodyRotation)
+    );
+    this.currentUpperBodyRotation += upperRotationDiff * 10 * delta;
+    this.upperBody.rotation.y = this.currentUpperBodyRotation;
 
     // Handle movement
     const movement = new THREE.Vector3(0, 0, 0);
     let isMoving = false;
 
     if (this.input.isKeyPressed('w')) {
-      movement.z += 1;
-      isMoving = true;
-    }
-    if (this.input.isKeyPressed('s')) {
       movement.z -= 1;
       isMoving = true;
     }
+    if (this.input.isKeyPressed('s')) {
+      movement.z += 1;
+      isMoving = true;
+    }
     if (this.input.isKeyPressed('a')) {
-      movement.x += 1;
+      movement.x -= 1;
       isMoving = true;
     }
     if (this.input.isKeyPressed('d')) {
-      movement.x -= 1;
+      movement.x += 1;
       isMoving = true;
     }
 
@@ -215,14 +230,6 @@ export class Player {
       this.currentLowerBodyRotation += lowerRotationDiff * 10 * delta;
       this.lowerBody.rotation.y = this.currentLowerBodyRotation;
     }
-
-    // Smooth upper body rotation to follow cursor
-    const upperRotationDiff = Math.atan2(
-      Math.sin(targetUpperBodyRotation - this.currentUpperBodyRotation),
-      Math.cos(targetUpperBodyRotation - this.currentUpperBodyRotation)
-    );
-    this.currentUpperBodyRotation += upperRotationDiff * 10 * delta;
-    this.upperBody.rotation.y = this.currentUpperBodyRotation;
 
     // Update breathing and item position
     this.breathingTime += delta;

@@ -35,9 +35,9 @@ class LightEffect implements ItemEffect {
 
     // Calculate target position with improved depth
     const targetPos = new THREE.Vector3(
-      position.x - mousePos.x * 15, // Increased range
+      position.x - mousePos.x * -15, // Increased range
       0,
-      position.z + mousePos.y * 15 // Increased range
+      position.z + mousePos.y * -15 // Increased range
     );
     this.target.position.copy(targetPos);
   }
